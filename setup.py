@@ -71,7 +71,6 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: Implementation :: PyPy',
     ],
     tests_require=['pytest'],
     cmdclass={'test': PyTest},

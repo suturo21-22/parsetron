@@ -36,7 +36,7 @@ if user_theme == THEME_CLOUD:
     try:
         import cloud_sptheme as csp
     except Exception as e:
-        print "pip install cloud_sptheme"
+        print("pip install cloud_sptheme")
         raise e
     html_theme_path = [csp.get_theme_dir()]
     html_theme = "cloud"
@@ -399,4 +399,4 @@ texinfo_documents = [
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 def setup(app): 
-    app.add_stylesheet('custom.css') 
+    app.add_css_file('custom.css') 

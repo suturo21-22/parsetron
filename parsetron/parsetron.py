@@ -1,7 +1,7 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 import re
 import sys
 import itertools
@@ -33,7 +33,7 @@ else:
         it tries unicode(obj). It then < returns the unicode object | encodes
         it with the default encoding | ... >.
         """
-        if isinstance(obj, unicode):
+        if isinstance(obj, str):
             return obj
         try:
             # If this works, then _ustr() has the same behaviour as str(),
@@ -41,7 +41,7 @@ else:
             return str(obj)
 
         except UnicodeEncodeError:
-            return unicode(obj)
+            return str(obj)
 
 # ####################################
 # ############ User Space ############
@@ -63,7 +63,6 @@ class GrammarException(Exception):
 
 # ##### Semantic Grammar ######
 
-
 class MetaGrammar(type):
     """
     A meta grammar used to extract symbol names (expressed as variables)
@@ -73,7 +72,7 @@ class MetaGrammar(type):
     """
 
     def __new__(typ, name, bases, dct):
-        if '__metaclass__' not in dct:
+        if (not dct['__module__'].endswith('parsetron')) or dct['__qualname__'] != 'Grammar':
             # If user does::
             # >>> from parsetron import *
             # Then __new__() will be called with __metaclass__ in dct
@@ -88,7 +87,7 @@ class MetaGrammar(type):
         return super(MetaGrammar, typ).__new__(typ, name, bases, dct)
 
 
-class Grammar(object):
+class Grammar(object, metaclass=MetaGrammar):
     """
     Grammar user interface. Users should inherit this grammar and define a
     final grammar GOAL as class variable.
@@ -111,7 +110,6 @@ class Grammar(object):
         (similar to start variable *S* conventionally used in grammar
         definition)
     """
-    __metaclass__ = MetaGrammar
 
     def __new__(cls):
         return cls.__dict__['_grammar_']
@@ -238,7 +236,7 @@ class GrammarElement(object):
         return self.set_result_action(lambda r: r.set(value))
 
     def _check_type(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             return String(other)
         elif not isinstance(other, GrammarElement):
             raise GrammarException("can't construct grammar: %s + %s"
@@ -353,7 +351,7 @@ class GrammarElement(object):
     def __eq__(self, other):
         if isinstance(other, GrammarElement):
             return self is other or self.__dict__ == other.__dict__
-        elif isinstance(other, basestring):
+        elif isinstance(other, str):
             try:
                 self.parse(_ustr(other))
                 return True
@@ -504,7 +502,7 @@ class SetCs(GrammarElement):
             iter(strings)
         except:
             raise ValueError("input must be iterable: " + str(strings))
-        if isinstance(strings, basestring):
+        if isinstance(strings, str):
             strings = re.split("\s+", strings)
             if len(strings) == 1:
                 strings = strings[0]
@@ -560,7 +558,7 @@ class RegexCs(GrammarElement):
         super(RegexCs, self).__init__()
         self.flags = flags
         self.match_whole = match_whole
-        if isinstance(pattern, basestring):
+        if isinstance(pattern, str):
             if len(pattern) == 0:
                 raise ValueError("Regex doesn't accept empty pattern")
             if match_whole:
@@ -613,11 +611,11 @@ class GrammarExpression(GrammarElement):
         super(GrammarExpression, self).__init__()
 
         self.is_terminal = False
-        if isinstance(exprs, basestring):
+        if isinstance(exprs, str):
             self.exprs = [String(exprs)]
         elif isinstance(exprs, (list, tuple)):
             # if sequence of strings provided, wrap with String
-            if all(isinstance(expr, basestring) for expr in exprs):
+            if all(isinstance(expr, str) for expr in exprs):
                 exprs = list(map(String, exprs))
             self.exprs = exprs
         else:
@@ -688,7 +686,7 @@ class And(GrammarExpression):
         super(And, self).__init__(exprs)
 
     def __iadd__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             other = String(other)
         return self.append(other)
 
@@ -705,7 +703,7 @@ class Or(GrammarExpression):
         super(Or, self).__init__(exprs)
 
     def __ior__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             other = String(other)
         return self.append(other)  # Or( [ self, other ] )
 
@@ -725,7 +723,7 @@ class GrammarElementEnhance(GrammarElement):
 
     def __init__(self, expr):
         super(GrammarElementEnhance, self).__init__()
-        if isinstance(expr, basestring):
+        if isinstance(expr, str):
             expr = String(expr)
         self.expr = expr
         self.str = _ustr(self.expr)
@@ -1024,7 +1022,7 @@ class GrammarImpl(object):
         :return: a dictionary mapping from ``id(variable)`` to variable name.
         """
         vid2name = {}
-        for k, v in dct.items():
+        for k, v in list(dct.items()):
             if isinstance(v, GrammarElement):
                 vid2name[id(v)] = k
         return vid2name
@@ -1914,7 +1912,7 @@ class ParseResult(object):
         :parameter bool as_flat: whether to flatten `result`.
         """
         if as_flat:
-            for k, v in result.items():
+            for k, v in list(result.items()):
                 self.add_item(k, v)
         else:
             self.add_item(result.name(), result)
@@ -1966,7 +1964,7 @@ class ParseResult(object):
         """
         Return the set of names in result
         """
-        return self._results.keys()
+        return list(self._results.keys())
 
     def __getitem__(self, item):
         return self._results.get(item, None)
@@ -1990,19 +1988,19 @@ class ParseResult(object):
         """
         Return the set of names in result
         """
-        return self._results.keys()
+        return list(self._results.keys())
 
     def values(self):
         """
         Return the set of values in result
         """
-        return self._results.values()
+        return list(self._results.values())
 
     def items(self):
         """
         Return the dictionary of items in result
         """
-        return self._results.items()
+        return list(self._results.items())
 
     @staticmethod
     def _serialize(obj):
@@ -2028,8 +2026,8 @@ class Chart(object):
     def __init__(self, size):
         self._init_pointers()
         self.size = size
-        self.edges = [[set() for _ in xrange(self.size)]
-                      for _ in xrange(self.size)]
+        self.edges = [[set() for _ in range(self.size)]
+                      for _ in range(self.size)]
         # current parsing progress; when chart_i = m, it means we are
         # considering the token between m-1 and m.
         self.chart_i = 0
@@ -2039,7 +2037,7 @@ class Chart(object):
         # tokens[3:4] in original sentence. If we want to find out what the
         # edge [0, 3] covers, then we need to know self.lex_idx[0]'s lex_start
         # and self.lex_idx[2]'s lex_end
-        self.lex_idx = [(None, None) for _ in xrange(size)]
+        self.lex_idx = [(None, None) for _ in range(size)]
 
     def _init_pointers(self):
         # edge2backpointers hold only tuples of children edges
@@ -2155,7 +2153,7 @@ class Chart(object):
         :return: list(:class:`Edge`)
         """
         edges = []
-        for i in xrange(min(self.size, end + 1)):
+        for i in range(min(self.size, end + 1)):
             for edge in self.edges[i][end]:
                 edges.append(edge)
         return edges
@@ -2182,7 +2180,7 @@ class Chart(object):
         # #           for edge in self.edges[i][end]
         # #             if edge.get_rhs_after_dot() is rhs_after_dot
         # #         ]
-        for i in xrange(min(self.size, end + 1)):
+        for i in range(min(self.size, end + 1)):
             for edge in self.edges[i][end]:
                 # replaced "==" here with "is" and got 2x speed up
                 # if edge.get_rhs_after_dot() is rhs_after_dot:
@@ -2220,7 +2218,7 @@ class Chart(object):
         :rtype: list(:class:`Edge`)
         """
         edges = []
-        for j in xrange(self.size):
+        for j in range(self.size):
             for edge in self.edges[start][j]:
                 if edge.is_complete() and edge.prod.lhs is lhs:
                     edges.append(edge)
@@ -2228,8 +2226,8 @@ class Chart(object):
 
     def __str__(self):
         str_list = []
-        for i in xrange(self.size):
-            for j in xrange(self.size):
+        for i in range(self.size):
+            for j in range(self.size):
                 if len(self.edges[i][j]) > 0:
                     str_list += [str(e) for e in self.edges[i][j]]
         return "\n".join(sorted(str_list))
@@ -2239,7 +2237,7 @@ class Chart(object):
         Return a string representing the current state of all backpointers.
         """
         str_list = []
-        for edge, children in self.edge2backpointers.items():
+        for edge, children in list(self.edge2backpointers.items()):
             str_list.append(str(edge) + " :-> " + str(children))
         return "\n".join(sorted(str_list))
 
@@ -2325,7 +2323,7 @@ class Chart(object):
             # for self.edge2backpointers
             ss = sorted(
                 [(len(children_edges), children_edges) for children_edges
-                 in self.edge2backpointers[parent_edge]])
+                 in self.edge2backpointers[parent_edge]], key=lambda p: p[0])
             min_child_num = ss[0][0]
             # there could be multiple backpointers of the same size
             min_children_edges = [c for l, c in ss if l == min_child_num]
@@ -2337,7 +2335,7 @@ class Chart(object):
                 child_trees_list.append(child_trees)
             # we select from whoever's children are the smallest
             cc = sorted([(sum([t[0].size() for t in c_trees]),
-                          c_trees) for c_trees in child_trees_list])
+                          c_trees) for c_trees in child_trees_list], key=lambda p: p[0])
             child_trees = cc[0][1]
             for t in itertools.product(*child_trees):
                 trees.append(
@@ -2381,14 +2379,14 @@ class IncrementalChart(Chart):
         """
 
         # padding horizontally -->>
-        for i in xrange(self.max_size):
-            self.edges[i] += [set() for _ in xrange(self.inc_size)]
+        for i in range(self.max_size):
+            self.edges[i] += [set() for _ in range(self.inc_size)]
 
         # padding vertically --vv
-        self.edges += [[set() for _ in xrange(self.max_size + self.inc_size)]
-                       for _ in xrange(self.inc_size)]
+        self.edges += [[set() for _ in range(self.max_size + self.inc_size)]
+                       for _ in range(self.inc_size)]
         self.max_size += self.inc_size
-        self.lex_idx += [(None, None) for _ in xrange(self.inc_size)]
+        self.lex_idx += [(None, None) for _ in range(self.inc_size)]
 
     def add_edge(self, edge, prev_edge, child_edge, lexicon=''):
         if edge.end >= self.size:
@@ -2772,7 +2770,7 @@ class RobustParser(object):
         chart = None
         accepted_tokens = []
         num = len(tokens)
-        for i in xrange(num):
+        for i in range(num):
             token = tokens[i]
             (chart, parsed_tokens) = self.incremental_parse_to_chart(
                 token, chart)
@@ -2875,7 +2873,7 @@ class RobustParser(object):
         This function doesn't parse unrecognizable tokens.
         """
 
-        if isinstance(sent_or_tokens, basestring):
+        if isinstance(sent_or_tokens, str):
             string = strip_string(sent_or_tokens)
             tokens = string.split()
         elif type(sent_or_tokens) is list:
@@ -3041,7 +3039,7 @@ def find_word_boundaries(string):
     if end > start:
         boundaries.append((start, end))
     if len(boundaries) > 0:
-        starts, ends = zip(*boundaries)
+        starts, ends = list(zip(*boundaries))
         starts, ends = set(starts), set(ends)
     else:
         starts, ends = set(), set()

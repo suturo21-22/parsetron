@@ -216,7 +216,7 @@ def get_color2rgb():
         color_name = " ".join(camel_pattern.findall(camel_name)).lower()
         rgb = hex2rgb(html_code)
         name2rgb[color_name] = rgb
-    for ish_name, name in ish_map.items():
+    for ish_name, name in list(ish_map.items()):
         name2rgb[ish_name] = name2rgb[name]
     return name2rgb
 
@@ -229,12 +229,12 @@ def add_rgb_to_result(r):
 
 class ColorsGrammar(Grammar):
 
-    GOAL = Set(color2rgb.keys()).set_result_action(add_rgb_to_result)
+    GOAL = Set(list(color2rgb.keys())).set_result_action(add_rgb_to_result)
 
     @staticmethod
     def test():
         parser = RobustParser(ColorsGrammar())
-        for name, rgb in color2rgb.items():
+        for name, rgb in list(color2rgb.items()):
             t, r = parser.parse(name)
             # print r
             # assert r.rgb == rgb, "result: %s\nrgb: %s" % (r, rgb)

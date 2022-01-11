@@ -66,12 +66,12 @@ The following is a grammar that parses natural language instruction on lights:
                 tree, result = parser.parse(sent)
                 assert result.one_parse[0].color == 'red'
 
-                print '"%s"' % sent
-                print "parse tree:"
-                print tree
-                print "parse result:"
-                print result
-                print
+                print('"%s"' % sent)
+                print("parse tree:")
+                print(tree)
+                print("parse result:")
+                print(result)
+                print()
 
 
 Dependencies

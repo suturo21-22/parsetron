@@ -247,7 +247,7 @@ class TestOr(object):
         assert len(a.exprs) == 5
 
         with pytest.raises(GrammarException):
-            print(a | 3.3)
+            print((a | 3.3))
 
 
 class TestStr(object):
@@ -352,13 +352,13 @@ class TestParser(object):
         # test result
         assert r.times == [1]
         assert r.color == (255, 0, 0)
-        print(repr(r))  # test __repr__()
-        assert 'quickly' in r.values()
-        assert 'quick' in r.keys()
+        print((repr(r)))  # test __repr__()
+        assert 'quickly' in list(r.values())
+        assert 'quick' in list(r.keys())
         del r['quick']
-        assert 'quick' not in r.keys()
+        assert 'quick' not in list(r.keys())
         r.quick = 'quickly'
-        assert 'quickly' in r.values()
+        assert 'quickly' in list(r.values())
         del r.quick
         assert 'quick' not in r
         r['quick'] = 'quickly'
@@ -550,7 +550,7 @@ class TestDocGrammar(object):
         ]
         for sent in sents:
             tree, result = parser.parse_string(sent)
-            print('"%s"' % sent)
+            print(('"%s"' % sent))
             print("parse tree:")
             print(tree)
             print("parse result:")

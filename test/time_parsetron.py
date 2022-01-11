@@ -33,8 +33,7 @@ parser_bu = RobustParser(light, BottomUpStrategy)
 parser_lc = RobustParser(light, LeftCornerStrategy)
 time_grammar_e = time.time()
 
-print >> sys.stderr, \
-    "grammar init time: %.2f seconds" % (time_grammar_e-time_grammar_s)
+print(("grammar init time: %.2f seconds" % (time_grammar_e-time_grammar_s), sys.stderr))
 
 
 def test_code(parser):
@@ -71,17 +70,14 @@ def parse_time(strategy):
     time_parser_e = time.time()
 
     elapsed = time_parser_e-time_parser_s
-    print >> sys.stderr, \
-        "%s parsing time: %.2f seconds" % (pstr, elapsed)
+    print(("%s parsing time: %.2f seconds" % (pstr, elapsed), sys.stderr))
 
     per_parse = elapsed*1000/iterations/len(sents)
-    print >> sys.stderr, \
-        "%s time per parse: %.2f ms" % (pstr, per_parse)
+    print(("%s time per parse: %.2f ms" % (pstr, per_parse), sys.stderr))
     return elapsed, per_parse
 
 td_elapsed, td_per = parse_time(0)
 bu_elapsed, bu_per = parse_time(1)
 lc_elapsed, lc_per = parse_time(2)
 
-print >> sys.stderr, "\naverage time per parse: %.2f ms" % \
-                     ((td_per+bu_per+lc_per)/3)
+print(("\naverage time per parse: %.2f ms" % ((td_per+bu_per+lc_per)/3), sys.stderr))
