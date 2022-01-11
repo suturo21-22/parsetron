@@ -207,7 +207,7 @@ class GrammarElement(object):
         return self.__class__.__name__ + "(" + str(default_name) + ")"
 
     def set_result_action(self, *functions):
-        """
+        r"""
         Set functions to call after parsing. For instance::
 
             >>> number = Regex(r"\d+").set_result_action(lambda x: int(x))
@@ -469,7 +469,7 @@ class String(StringCs):
 
 
 class SetCs(GrammarElement):
-    """
+    r"""
     Case-sensitive strings in which matching any will lead to parsing
     success. This is a short cut for disjunction of :class:`StringCs` s (\|),
     or :class:`Regex` (``r'(a\|b\|c\|...)'``).
@@ -503,7 +503,7 @@ class SetCs(GrammarElement):
         except:
             raise ValueError("input must be iterable: " + str(strings))
         if isinstance(strings, str):
-            strings = re.split("\s+", strings)
+            strings = re.split(r"\s+", strings)
             if len(strings) == 1:
                 strings = strings[0]
         if caseless:
@@ -534,7 +534,7 @@ class Set(SetCs):
 
 
 class RegexCs(GrammarElement):
-    """
+    r"""
     Case-sensitive string matching with regular expressions. e.g.::
 
         >>> color = RegexCs(r"(red|blue|orange)")
@@ -3013,7 +3013,7 @@ def strip_string(string):
     """
     Merge spaces into single space
     """
-    return re.sub('[\t\s]+', ' ', string).strip()
+    return re.sub(r'[\t\s]+', ' ', string).strip()
 
 
 def find_word_boundaries(string):
