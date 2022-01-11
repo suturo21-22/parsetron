@@ -32,10 +32,7 @@ lint:
 	flake8 parsetron test
 
 test:
-	# py.test
-	py.test --genscript=runtests.py
-	python2.7 runtests.py
-	rm runtests.py
+	PYTHONPATH=$(shell pwd):$(PYTHONPATH) py.test-3
 
 test-all:
 	tox
